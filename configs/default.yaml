@@ -1,0 +1,74 @@
+# Default configuration for golkube
+
+# Docker settings
+docker:
+  host: "unix:///var/run/docker.sock"
+  api_version: "1.41"
+  timeout: 30s
+
+# Kubernetes settings
+kubernetes:
+  kubeconfig: "~/.kube/config"
+  context: "default"
+  namespace: "default"
+
+# Image build settings
+build:
+  context: "./"
+  dockerfile: "Dockerfile"
+  tags:
+    - "golkube:latest"
+  no_cache: false
+  pull: true
+
+# Registry settings
+registry:
+  url: "https://index.docker.io/v1/"
+  username: ""
+  password: ""
+  email: ""
+
+# Monitoring settings
+monitoring:
+  enabled: true
+  interval: 10s
+  metrics:
+    - "cpu"
+    - "memory"
+    - "network"
+
+# Logging settings
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+# Pipeline settings
+pipeline:
+  config_file: "pipeline.yaml"
+  stages:
+    - name: "build"
+      commands:
+        - "go build -o bin/golkube ./cmd/golkube"
+    - name: "test"
+      commands:
+        - "go test -v ./..."
+    - name: "deploy"
+      commands:
+        - "kubectl apply -f deployment.yaml"
+
+# Notification settings
+notifications:
+  email:
+    enabled: false
+    smtp_server: "smtp.example.com"
+    port: 587
+    username: ""
+    password: ""
+    from: "noreply@example.com"
+    to:
+      - "admin@example.com"
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#alerts"
