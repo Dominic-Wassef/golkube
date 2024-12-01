@@ -1,0 +1,10 @@
+stages:
+  - name: "build"
+    commands:
+      - "go build -o bin/golkube ./cmd/golkube"
+  - name: "test"
+    commands:
+      - "go test -v ./..."
+  - name: "deploy"
+    commands:
+      - "kubectl apply -f ./configs/deployment.yaml"

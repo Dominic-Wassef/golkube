@@ -1,8 +1,8 @@
 # Variables
 APP_NAME := golkube
 GO_FILES := $(shell find . -type f -name '*.go')
-GOFMT := $(shell gofmt -l $(GO_FILES))
-DOCKER_IMAGE := $(APP_NAME):latest
+DOCKER_TAG := $(shell git rev-parse --short HEAD)
+DOCKER_IMAGE := $(APP_NAME):$(DOCKER_TAG)
 CONFIG_FILE := configs/default.yaml
 
 # Default target
@@ -30,18 +30,14 @@ build:
 
 # Run the application
 .PHONY: run
-run: build
+run: build verify-namespace
 	./bin/$(APP_NAME) --config $(CONFIG_FILE)
 
-# Test the application
-.PHONY: test
-test:
-	go test -v ./...
-
-# Clean build artifacts
-.PHONY: clean
-clean:
-	rm -rf bin/*
+# Verify Kubernetes namespace
+.PHONY: verify-namespace
+verify-namespace:
+	kubectl get namespace $(shell yq '.kubernetes.namespace' $(CONFIG_FILE)) || \
+	kubectl create namespace $(shell yq '.kubernetes.namespace' $(CONFIG_FILE))
 
 # Build Docker image
 .PHONY: docker-build
@@ -52,28 +48,6 @@ docker-build:
 .PHONY: docker-push
 docker-push:
 	docker push $(DOCKER_IMAGE)
-
-# Lint Go code
-.PHONY: lint
-lint:
-	golangci-lint run ./...
-
-# Generate code (e.g., mocks)
-.PHONY: generate
-generate:
-	go generate ./...
-
-# Install dependencies
-.PHONY: deps
-deps:
-	go mod tidy
-	go mod download
-
-# Update dependencies
-.PHONY: update-deps
-update-deps:
-	go get -u ./...
-	go mod tidy
 
 # Run in Docker
 .PHONY: docker-run

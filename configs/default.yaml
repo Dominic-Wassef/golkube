@@ -24,8 +24,8 @@ build:
 # Registry settings
 registry:
   url: "https://index.docker.io/v1/"
-  username: ""
-  password: ""
+  username: ""  # Set via DOCKER_USERNAME environment variable
+  password: ""  # Set via DOCKER_PASSWORD environment variable
   email: ""
 
 # Monitoring settings
@@ -45,17 +45,7 @@ logging:
 
 # Pipeline settings
 pipeline:
-  config_file: "pipeline.yaml"
-  stages:
-    - name: "build"
-      commands:
-        - "go build -o bin/golkube ./cmd/golkube"
-    - name: "test"
-      commands:
-        - "go test -v ./..."
-    - name: "deploy"
-      commands:
-        - "kubectl apply -f deployment.yaml"
+  config_file: "./configs/pipeline.yaml"
 
 # Notification settings
 notifications:

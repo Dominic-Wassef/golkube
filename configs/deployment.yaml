@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golkube-deployment
+  labels:
+    app: golkube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: golkube
+  template:
+    metadata:
+      labels:
+        app: golkube
+    spec:
+      containers:
+      - name: golkube
+        image: ${DOCKER_IMAGE}
+        ports:
+        - containerPort: 8080

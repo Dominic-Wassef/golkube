@@ -3,6 +3,9 @@ package kube
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -25,21 +28,51 @@ type KubeClient struct {
 
 // NewKubeClient initializes a Kubernetes client with typed, dynamic, and REST clients.
 func NewKubeClient(kubeconfigPath string) (*KubeClient, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	log.Printf("Initializing Kubernetes client with kubeconfig: %s", kubeconfigPath)
+
+	// Expand the tilde to the home directory if present
+	if kubeconfigPath[:2] == "~/" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to determine home directory: %w", err)
+		}
+		kubeconfigPath = filepath.Join(homeDir, kubeconfigPath[2:])
+	}
+	log.Printf("Resolved kubeconfig path to: %s", kubeconfigPath)
+
+	// Ensure the path is absolute
+	absolutePath, err := filepath.Abs(kubeconfigPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve kubeconfig path: %w", err)
+	}
+
+	// Check if kubeconfig file exists
+	if _, err := os.Stat(absolutePath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("kubeconfig file does not exist: %s", absolutePath)
+		}
+		return nil, fmt.Errorf("error accessing kubeconfig file: %w", err)
+	}
+
+	// Load Kubernetes configuration
+	config, err := clientcmd.BuildConfigFromFlags("", absolutePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load kubeconfig: %w", err)
 	}
 
+	// Create typed Kubernetes client
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create typed Kubernetes client: %w", err)
 	}
 
+	// Create dynamic Kubernetes client
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dynamic Kubernetes client: %w", err)
 	}
 
+	log.Println("Successfully initialized Kubernetes client.")
 	return &KubeClient{
 		Clientset:     clientset,
 		DynamicClient: dynamicClient,
@@ -122,11 +155,14 @@ func (kc *KubeClient) ListResources(gvr schema.GroupVersionResource, namespace s
 
 // WaitForResource waits for a resource to be in a desired state.
 func (kc *KubeClient) WaitForResource(name string, gvr schema.GroupVersionResource, namespace string, condition func(*unstructured.Unstructured) bool, timeout time.Duration) error {
-	return wait.PollImmediate(2*time.Second, timeout, func() (done bool, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return wait.PollUntilContextTimeout(ctx, 2*time.Second, timeout, true, func(ctx context.Context) (done bool, err error) {
 		resource, err := kc.GetResource(name, gvr, namespace)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) {
-				return false, nil // Keep waiting
+				return false, nil // Keep waiting if resource is not found
 			}
 			return false, err // Fail on other errors
 		}
