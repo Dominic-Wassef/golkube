@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"golkube/pkg/kube"
@@ -10,7 +10,7 @@ import (
 )
 
 // loadEnvironment loads environment variables from a `.env` file
-func loadEnvironment() {
+func LoadEnvironment() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Printf("Warning: No .env file found or failed to load it: %v", err)
@@ -18,9 +18,9 @@ func loadEnvironment() {
 }
 
 // loadConfiguration loads the application's configuration file
-func loadConfiguration() {
-	rootCmd.PersistentFlags().String("config", "configs/default.yaml", "Path to configuration file")
-	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+func LoadConfiguration() {
+	RootCmd.PersistentFlags().String("config", "configs/default.yaml", "Path to configuration file")
+	viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config"))
 
 	configFile := viper.GetString("config")
 	if configFile == "" {
@@ -32,15 +32,15 @@ func loadConfiguration() {
 		log.Fatalf("Failed to read config file: %v", err)
 	}
 
-	rootCmd.PersistentFlags().String("namespace", viper.GetString("kubernetes.namespace"), "Kubernetes namespace")
-	viper.BindPFlag("kubernetes.namespace", rootCmd.PersistentFlags().Lookup("namespace"))
+	RootCmd.PersistentFlags().String("namespace", viper.GetString("kubernetes.namespace"), "Kubernetes namespace")
+	viper.BindPFlag("kubernetes.namespace", RootCmd.PersistentFlags().Lookup("namespace"))
 
-	rootCmd.PersistentFlags().String("kubeconfig", viper.GetString("kubernetes.kubeconfig"), "Path to kubeconfig file")
-	viper.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
+	RootCmd.PersistentFlags().String("kubeconfig", viper.GetString("kubernetes.kubeconfig"), "Path to kubeconfig file")
+	viper.BindPFlag("kubeconfig", RootCmd.PersistentFlags().Lookup("kubeconfig"))
 }
 
 // setLogLevel configures the logging level
-func setLogLevel(level string) {
+func SetLogLevel(level string) {
 	switch level {
 	case "debug":
 		log.SetFlags(log.LstdFlags | log.Lshortfile) // Include file and line number
@@ -58,7 +58,7 @@ func setLogLevel(level string) {
 }
 
 // initializeClients sets up Kubernetes and Docker clients
-func initializeClients() (*kube.KubeClient, *registry.RegistryClient) {
+func InitializeClients() (*kube.KubeClient, *registry.RegistryClient) {
 	kubeconfig := viper.GetString("kubernetes.kubeconfig")
 	kubeClient, err := kube.NewKubeClient(kubeconfig)
 	if err != nil {

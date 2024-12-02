@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 // registerConfigCommands registers all commands related to configuration management.
-func registerConfigCommands() {
+func RegisterConfigCommands() {
 	// Parent command for configuration-related operations
 	configCmd := &cobra.Command{
 		Use:   "config",
@@ -68,5 +68,5 @@ func registerConfigCommands() {
 	})
 
 	// Add the config command to the root command
-	rootCmd.AddCommand(configCmd)
+	RootCmd.AddCommand(configCmd)
 }

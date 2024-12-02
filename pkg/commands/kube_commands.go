@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -12,27 +12,41 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// registerKubeSubCommands registers Kubernetes-related commands under the "kube" command.
-func registerKubeSubCommands(kubeCmd *cobra.Command, kubeClient *kube.KubeClient) {
-	// Resource management commands
+// RegisterKubeCommands registers Kubernetes-related commands under the "kube" namespace.
+func RegisterKubeCommands(kubeClient *kube.KubeClient) {
+	// Find or create the "kube" command
+	kubeCmd := findOrCreateKubeCommand()
+
+	// Add Kubernetes subcommands
 	kubeCmd.AddCommand(createResourceCmd(kubeClient))
 	kubeCmd.AddCommand(updateResourceCmd(kubeClient))
 	kubeCmd.AddCommand(deleteResourceCmd(kubeClient))
 	kubeCmd.AddCommand(getResourceCmd(kubeClient))
 	kubeCmd.AddCommand(listResourcesCmd(kubeClient))
 	kubeCmd.AddCommand(waitResourceCmd(kubeClient))
-
-	// ConfigMap management commands
 	kubeCmd.AddCommand(createConfigMapCmd(kubeClient))
 	kubeCmd.AddCommand(updateConfigMapCmd(kubeClient))
 	kubeCmd.AddCommand(listConfigMapsCmd(kubeClient))
 	kubeCmd.AddCommand(deleteConfigMapCmd(kubeClient))
-
-	// Deployment management commands
 	kubeCmd.AddCommand(createDeploymentCmd(kubeClient))
 	kubeCmd.AddCommand(updateDeploymentCmd(kubeClient))
 	kubeCmd.AddCommand(listDeploymentsCmd(kubeClient))
 	kubeCmd.AddCommand(deleteDeploymentCmd(kubeClient))
+}
+
+// findOrCreateKubeCommand checks if "kube" exists or creates it under RootCmd.
+func findOrCreateKubeCommand() *cobra.Command {
+	for _, cmd := range RootCmd.Commands() {
+		if cmd.Use == "kube" {
+			return cmd
+		}
+	}
+	kubeCmd := &cobra.Command{
+		Use:   "kube",
+		Short: "Manage Kubernetes resources dynamically",
+	}
+	RootCmd.AddCommand(kubeCmd)
+	return kubeCmd
 }
 
 // Command implementations

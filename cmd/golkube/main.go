@@ -1,6 +1,7 @@
 package main
 
 import (
+	"golkube/pkg/commands"
 	"log"
 
 	"github.com/spf13/viper"
@@ -8,21 +9,21 @@ import (
 
 func main() {
 	// Load environment and configuration files
-	loadEnvironment()
-	loadConfiguration()
+	commands.LoadEnvironment()
+	commands.LoadConfiguration()
 
 	// Set the logging level based on the log-level flag
 	logLevel := viper.GetString("log-level")
-	setLogLevel(logLevel)
+	commands.SetLogLevel(logLevel)
 
 	// Initialize Kubernetes and Docker clients
-	kubeClient, dockerRegistry := initializeClients()
+	kubeClient, dockerRegistry := commands.InitializeClients()
 
 	// Register all CLI commands
-	registerCommands(kubeClient, dockerRegistry)
+	commands.RegisterCommands(kubeClient, dockerRegistry)
 
 	// Execute the root command
-	if err := rootCmd.Execute(); err != nil {
+	if err := commands.RootCmd.Execute(); err != nil {
 		log.Fatalf("Error executing command: %v", err)
 	}
 }

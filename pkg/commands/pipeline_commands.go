@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 // registerPipelineCommand registers all pipeline-related commands.
-func registerPipelineCommand() {
+func RegisterPipelineCommand() {
 	// Parent command for pipeline operations
 	pipelineCmd := &cobra.Command{
 		Use:   "pipeline",
@@ -68,5 +68,5 @@ func registerPipelineCommand() {
 	pipelineCmd.AddCommand(pipelineExecuteCmd)
 
 	// Add the pipeline command to the root command
-	rootCmd.AddCommand(pipelineCmd)
+	RootCmd.AddCommand(pipelineCmd)
 }

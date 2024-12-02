@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 )
 
 // registerUtilityCommands registers all utility commands to the root command.
-func registerUtilityCommands(kubeClient *kube.KubeClient) {
+func RegisterUtilityCommands(kubeClient *kube.KubeClient) {
 	// Command to monitor Kubernetes resources
 	monitorCmd := &cobra.Command{
 		Use:   "monitor",
@@ -28,5 +28,5 @@ func registerUtilityCommands(kubeClient *kube.KubeClient) {
 	}
 
 	// Add the monitor command to the root command
-	rootCmd.AddCommand(monitorCmd)
+	RootCmd.AddCommand(monitorCmd)
 }
